@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Interativo de Flashcards Pro</title>
+  <style>
+    :root {
+      --primary: #4338ca;
+      --primary-hover: #3730a3;
+      --secondary: #e0e7ff;
+      --secondary-text: #3730a3;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --border: #e2e8f0;
+      --input-bg: #fdfdfd;
+      --card-front-bg: #ffffff;
+      --card-front-text: #1e293b;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --radius: 12px;
+    }
+
+    body.dark-mode {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --secondary: #312e81;
+      --secondary-text: #c7d2fe;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --input-bg: #0f172a;
+      --card-front-bg: #1e293b;
+      --card-front-text: #f8fafc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* =========================================
+       HEADER & MENU LATERAL (MOBILE)
+       ========================================= */
+    header {
+      flex-shrink: 0;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+      z-index: 10;
+    }
+
+    .header-brand { display: flex; align-items: center; gap: 0.5rem; }
+    h1 { font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 0.4rem; }
+    
+    .nav-actions { display: flex; align-items: center; gap: 1rem; }
+    .tabs { display: flex; gap: 0.35rem; background: var(--bg); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--border); }
+    .tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { background-color: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+    .theme-toggle-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; }
+
+    .menu-toggle {
+      display: none; background: transparent; border: none; color: var(--text);
+      font-size: 1.75rem; cursor: pointer; padding: 0.2rem;
+    }
+
+    .mobile-sidebar {
+      position: fixed; top: 0; left: -280px; width: 260px; height: 100%;
+      background-color: var(--surface); box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+      z-index: 2000; transition: left 0.3s ease; display: flex; flex-direction: column; padding: 1.5rem;
+    }
+    .mobile-sidebar.open { left: 0; }
+    .mobile-sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+    .mobile-sidebar-header h2 { font-size: 1.2rem; color: var(--primary); }
+    .close-menu-btn { background: transparent; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
+    .mobile-nav-links { display: flex; flex-direction: column; gap: 0.5rem; }
+    .mobile-nav-links .tab-btn { justify-content: flex-start; padding: 1rem; font-size: 1rem; background: transparent; border-radius: 8px; }
+    .mobile-nav-links .tab-btn.active { background: var(--secondary); color: var(--primary); }
+    .mobile-nav-links .theme-toggle-btn { margin-top: auto; justify-content: center; padding: 1rem; margin-top: 2rem; }
+
+    .sidebar-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 1500; display: none; opacity: 0; transition: opacity 0.3s;
+    }
+    .sidebar-overlay.active { display: block; opacity: 1; }
+
+    main { flex: 1; display: flex; flex-direction: column; padding: 1rem; overflow: hidden; }
+    .container { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 1600px; margin: 0 auto; height: 100%; min-height: 0; }
+    .tab-content { display: none; flex: 1; flex-direction: column; height: 100%; overflow: hidden; min-height: 0; }
+    .tab-content.active { display: flex; animation: fadeIn 0.25s ease; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* =========================================
+       FORMULÁRIOS & ELEMENTOS
+       ========================================= */
+    .panel { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow-md); border: 1px solid var(--border); width: 100%; }
+    .input-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    label { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+    input, select { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: inherit; background: var(--input-bg); color: var(--text); }
+    input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--secondary); }
+    
+    button { background-color: var(--primary); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.2s, transform 0.1s; }
+    button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button.full-width { width: 100%; }
+    .btn-danger { background-color: transparent; color: var(--danger); border: 1px solid var(--danger); }
+    .btn-danger:hover { background-color: var(--danger); color: white; }
+    .btn-secondary { background-color: var(--secondary); color: var(--secondary-text); }
+    .btn-action { background-color: transparent; color: #0ea5e9; border: 1px solid #0ea5e9; }
+    .btn-action:hover { background-color: #0ea5e9; color: white; }
+
+    .rich-textarea { width: 100%; min-height: 100px; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--input-bg); color: var(--text); overflow-y: auto; white-space: pre-wrap; }
+    .rich-textarea:empty:before { content: attr(data-placeholder); color: var(--text-muted); pointer-events: none; display: block; }
+    .rich-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--secondary); }
+    strong { color: var(--primary); font-weight: 800; }
+    u { text-decoration: underline; text-decoration-color: var(--primary); text-underline-offset: 3px; }
+    del { opacity: 0.75; text-decoration-color: var(--danger); }
+    .dark-mode strong { color: #818cf8; }
+    .dark-mode u { text-decoration-color: #818cf8; }
+
+    /* =========================================
+       NUVEM DE TAGS RÁPIDAS
+       ========================================= */
+    .quick-tags-container { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.25rem; margin-bottom: 0.5rem; }
+    .quick-tag-pill { 
+      font-size: 0.75rem; font-weight: 600; background: var(--secondary); color: var(--secondary-text); 
+      padding: 0.4rem 0.7rem; border-radius: 12px; cursor: grab; border: 1px solid transparent; 
+      user-select: none; transition: transform 0.1s;
+    }
+    .quick-tag-pill:hover { filter: brightness(0.95); transform: translateY(-1px); }
+    .quick-tag-pill:active { cursor: grabbing; }
+    .dropzone { transition: background-color 0.2s, border-color 0.2s; }
+    .dropzone.dragover { background-color: var(--secondary); border: 2px dashed var(--primary); }
+
+    /* =========================================
+       ABA 1: MODO REVISÃO E CARDS
+       ========================================= */
+    .study-layout { flex: 1; display: flex; flex-direction: row; gap: 1.5rem; max-width: 1400px; margin: 0 auto; width: 100%; height: 100%; min-height: 0; }
+    .study-sidebar { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 1rem; }
+    .study-sidebar-panel { background: var(--surface); padding: 1.25rem; border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1rem; }
+    .study-sidebar-panel label { margin-bottom: 0.3rem; display: block; }
+    .counter { font-size: 0.9rem; font-weight: bold; color: var(--secondary-text); background: var(--secondary); padding: 0.6rem; border-radius: 8px; text-align: center; }
+
+    .tag-badge { display: inline-block; font-size: 0.7rem; font-weight: 700; background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); padding: 0.2rem 0.5rem; border-radius: 6px; margin-top: 0.5rem; }
+
+    .flashcard-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+    
+    .flashcard { flex: 1; perspective: 1000px; cursor: pointer; margin-bottom: 1rem; min-height: 0; display: flex; flex-direction: column; }
+    
+    .flashcard-inner { 
+      flex: 1; display: grid; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); 
+      transform-style: preserve-3d; border-radius: var(--radius); box-shadow: var(--shadow-lg); 
+      min-height: 0; grid-template-rows: minmax(0, 1fr); 
+    }
+    
+    .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+
+    .flashcard-front, .flashcard-back {
+      grid-area: 1 / 1; position: relative; -webkit-backface-visibility: hidden; backface-visibility: hidden;
+      display: flex; flex-direction: column; padding: 1.5rem; border-radius: var(--radius);
+      height: 100%; min-height: 0; 
+    }
+    
+    .card-header-info { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 1rem; flex-shrink: 0; }
+    
+    .card-content-area { 
+      flex: 1; display: flex; flex-direction: column; width: 100%; overflow-y: auto; padding: 0 1rem; min-height: 0; 
+    }
+
+    .card-text-wrapper {
+      margin: auto 0; 
+      width: 100%;
+      font-size: clamp(1rem, 1.8vw, 1.25rem);
+      line-height: 1.6;
+      word-break: break-word;
+      white-space: pre-wrap; 
+      padding: 1rem 0;
+    }
+
+    .card-text-wrapper ul,
+    .card-text-wrapper ol {
+      text-align: left; padding-left: 2rem; margin: 0.5rem 0; display: block; 
+    }
+
+    .card-text-wrapper li { margin-bottom: 0.5rem; text-align: left; }
+    .card-text-wrapper p, .card-text-wrapper div { width: 100%; margin-bottom: 0.5rem; }
+
+    .flashcard-front::-webkit-scrollbar, .flashcard-back::-webkit-scrollbar, .card-content-area::-webkit-scrollbar { width: 6px; }
+    .flashcard-front::-webkit-scrollbar-thumb, .flashcard-back::-webkit-scrollbar-thumb, .card-content-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+    .flashcard-front { background-color: var(--card-front-bg); color: var(--card-front-text); border: 2px solid var(--border); }
+    .badge-subject { font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 10px; background-color: var(--secondary); color: var(--secondary-text); letter-spacing: 0.5px; }
+    .flashcard-back { background-color: var(--primary); color: #ffffff; transform: rotateY(180deg); }
+    .flashcard-back .badge-subject { background-color: rgba(255,255,255,0.25); color: #ffffff; }
+    .flashcard-back strong { color: #fde047; }
+    .flashcard-back u { text-decoration-color: #fde047; }
+
+    .controls { flex-shrink: 0; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+    .controls button { padding: 0.75rem 1.5rem; font-size: 1rem; min-width: 120px; }
+
+    /* =========================================
+       ABA 2: CRIAÇÃO
+       ========================================= */
+    #tab-create { overflow-y: auto; padding-bottom: 2rem; }
+    .create-layout { max-width: 800px; margin: 0 auto; width: 100%; }
+    .formatting-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: -0.2rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.4rem; }
+    .success-alert { display: none; background-color: #10b981; color: white; padding: 0.85rem; border-radius: 8px; font-weight: 600; font-size: 1rem; margin-bottom: 1rem; text-align: center; }
+
+    /* =========================================
+       ABA 3: GERENCIAMENTO E GRID
+       ========================================= */
+    .filter-bar { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 0.85rem 1.25rem; border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 1rem; gap: 0.75rem; flex-wrap: wrap; width: 100%; }
+    .filter-group { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 220px; }
+    .filter-group label { margin: 0; white-space: nowrap; font-size: 0.9rem; }
+    
+    .tags-quick-panel { flex: 0 0 auto !important; padding: 1rem 1.25rem !important; margin-bottom: 1rem; }
+
+    #tab-manage .panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 1.25rem; }
+    .manage-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; overflow-y: auto; padding-right: 0.3rem; }
+    
+    .manage-card { 
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); 
+      padding: 1.25rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 1rem; 
+      position: relative; transition: all 0.2s ease;
+    }
+    .manage-card.dragover { border: 2px dashed var(--primary); background-color: var(--secondary); transform: scale(1.02); z-index: 5; }
+    
+    .manage-card-subject { display: inline-block; align-self: flex-start; font-size: 0.75rem; font-weight: 700; background: var(--secondary); color: var(--secondary-text); padding: 0.25rem 0.6rem; border-radius: 10px; }
+    .manage-card-content { flex: 1; display: flex; flex-direction: column; gap: 0.75rem; }
+    .manage-field { background: var(--bg); padding: 0.75rem; border-radius: 6px; font-size: 0.95rem; max-height: 150px; overflow-y: auto; white-space: pre-wrap; }
+    .manage-field span { display: block; font-size: 0.75rem; font-weight: bold; color: var(--text-muted); margin-bottom: 0.25rem; text-transform: uppercase; white-space: normal; }
+    .manage-actions { display: flex; gap: 0.5rem; }
+    
+    .loading-msg { text-align: center; color: var(--primary); font-weight: bold; font-size: 1.1rem; padding: 2rem; }
+    .empty-state { grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--text-muted); font-size: 1.1rem; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-content { max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; }
+
+    /* =========================================
+       OTIMIZAÇÃO MOBILE (CELULARES)
+       ========================================= */
+    @media (max-width: 900px) {
+      body { height: auto; overflow-y: auto; }
+      main { overflow-y: visible; padding: 0.75rem; }
+      .container, .flashcard-container { height: auto; overflow: visible; display: block; }
+      
+      .tab-content { display: none !important; height: auto; overflow: visible; }
+      .tab-content.active { display: flex !important; flex-direction: column; }
+      
+      .nav-actions { display: none; } 
+      .menu-toggle { display: block; }
+
+      header { padding: 0.75rem 1rem; }
+      h1 { font-size: 1.1rem; }
+
+      .study-layout { flex-direction: column; gap: 1rem; }
+      .study-sidebar { width: 100%; }
+      .study-sidebar-panel { flex-direction: column; gap: 0.75rem; padding: 1rem; }
+      
+      .flashcard { min-height: 350px; margin-top: 0.5rem; }
+      .controls button { padding: 0.75rem 1rem; font-size: 0.9rem; flex: 1; }
+      
+      .filter-bar { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+      .filter-group { width: 100%; min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Menu Lateral Offcanvas (Mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+  <aside class="mobile-sidebar" id="mobile-sidebar">
+    <div class="mobile-sidebar-header">
+      <h2>Menu</h2>
+      <button class="close-menu-btn" onclick="closeMobileMenu()">✕</button>
+    </div>
+    <div class="mobile-nav-links">
+      <button class="tab-btn active" onclick="switchTab('study'); closeMobileMenu()" id="mob-tab-study">📚 Revisar</button>
+      <button class="tab-btn" onclick="switchTab('create'); closeMobileMenu()" id="mob-tab-create">➕ Novo Card</button>
+      <button class="tab-btn" onclick="switchTab('manage'); closeMobileMenu()" id="mob-tab-manage">⚙️ Gerenciar</button>
+      <button class="theme-toggle-btn" onclick="toggleTheme()" id="mob-theme-btn">🌙 Modo Noturno</button>
+    </div>
+  </aside>
+
+  <!-- Modal de Edição -->
+  <div id="edit-modal" class="modal-overlay">
+    <div class="modal-content panel">
+      <h2>✏️ Editar Card</h2>
+      <input type="hidden" id="edit-id">
+      
+      <div class="input-group">
+        <label>Disciplina / Matéria</label>
+        <!-- OnChange Adicionado para atualizar tags da edição -->
+        <select id="edit-subject" onchange="updateAllTagUIs()">
+          <option value="Português">Português</option>
+          <option value="TI">TI</option>
+          <option value="Ciências Forenses">Ciências Forenses</option>
+          <option value="Conceitos do Paraná">Conceitos do Paraná</option>
+          <option value="Legislação Estadual">Legislação Estadual</option>
+          <option value="Raciocínio Lógico e Matemático">Raciocínio Lógico e Matemático</option>
+          <option value="Estatística">Estatística</option>
+          <option value="Geral (Sem Matéria)">Geral (Sem Matéria)</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Tag / Assunto</label>
+        <select id="edit-tag" class="dropzone" onchange="handleNewTag(this)" ondrop="dropTag(event, this)" ondragover="allowDrop(event)">
+          <option value="">Sem tag</option>
+          <option value="_new_" style="font-weight: bold; color: var(--primary);">+ Adicionar Nova Tag...</option>
+        </select>
+        <div class="quick-tags-container" id="edit-quick-tags"></div>
+      </div>
+
+      <div class="input-group">
+        <label>Pergunta (Frente)</label>
+        <div id="edit-front" class="rich-textarea" contenteditable="true"></div>
+      </div>
+
+      <div class="input-group">
+        <label>Resposta (Verso)</label>
+        <div id="edit-back" class="rich-textarea" contenteditable="true"></div>
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <button class="btn-danger full-width" onclick="closeEditModal()">Cancelar</button>
+        <button class="full-width" id="btn-save-edit" onclick="saveEditedCard()">Atualizar</button>
+      </div>
+    </div>
+  </div>
+
+  <header>
+    <div class="header-brand">
+      <button class="menu-toggle" onclick="openMobileMenu()">☰</button>
+      <h1>🎴 Flashcards Pro</h1>
+    </div>
+    
+    <div class="nav-actions">
+      <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">🌙 Modo Noturno</button>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('study')" id="tab-btn-study">📚 Revisar</button>
+        <button class="tab-btn" onclick="switchTab('create')" id="tab-btn-create">➕ Novo Card</button>
+        <button class="tab-btn" onclick="switchTab('manage')" id="tab-btn-manage">⚙️ Gerenciar</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      
+      <!-- ================= ABA 1: REVISÃO ================= -->
+      <div id="tab-study" class="tab-content active">
+        <div class="study-layout">
+          
+          <div class="study-sidebar">
+            <div class="study-sidebar-panel">
+              <div>
+                <label><strong>Disciplina:</strong></label>
+                <!-- OnChange Modificado -->
+                <select id="study-subject-filter" onchange="updateAllTagUIs(); applyStudyFilter()">
+                  <option value="all">📚 Todas as Matérias</option>
+                  <option value="Português">Português</option>
+                  <option value="TI">TI</option>
+                  <option value="Ciências Forenses">Ciências Forenses</option>
+                  <option value="Conceitos do Paraná">Conceitos do Paraná</option>
+                  <option value="Legislação Estadual">Legislação Estadual</option>
+                  <option value="Raciocínio Lógico e Matemático">Raciocínio Lógico e Matemático</option>
+                  <option value="Estatística">Estatística</option>
+                </select>
+              </div>
+              <div>
+                <label><strong>Filtrar Tag:</strong></label>
+                <select id="study-tag-filter" onchange="applyStudyFilter()">
+                  <option value="">🏷️ Todas as Tags</option>
+                </select>
+              </div>
+              <button class="btn-action full-width" onclick="shuffleCards()">🔀 Embaralhar</button>
+              <div class="counter" id="card-counter">0 / 0</div>
+            </div>
+          </div>
+
+          <div class="flashcard-container">
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+              <div class="flashcard-inner">
+                <div class="flashcard-front">
+                  <div class="card-header-info">
+                    <span class="badge-subject" id="card-subject-front">Matéria</span>
+                    <span id="card-tag-front" class="tag-badge" style="display:none;">Tag</span>
+                  </div>
+                  <div class="card-content-area" id="card-front">
+                    <div class="card-text-wrapper">Carregando banco de dados...</div>
+                  </div>
+                </div>
+                <div class="flashcard-back">
+                  <div class="card-header-info">
+                    <span class="badge-subject" id="card-subject-back">Matéria</span>
+                    <span id="card-tag-back" class="tag-badge" style="display:none;">Tag</span>
+                  </div>
+                  <div class="card-content-area" id="card-back">
+                    <div class="card-text-wrapper">Aguarde.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button class="btn-secondary" onclick="prevCard()">◄ Anterior</button>
+              <button class="btn-secondary" onclick="nextCard()">Próximo ►</button>
+              <button class="btn-danger" onclick="deleteCurrentStudyCard()">Excluir</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================= ABA 2: CRIAÇÃO ================= -->
+      <div id="tab-create" class="tab-content">
+        <div class="create-layout">
+          <div class="panel">
+            <h2>➕ Cadastrar Novo Flashcard</h2>
+            <div id="success-alert" class="success-alert">✓ Flashcard salvo com sucesso!</div>
+
+            <div class="input-group">
+              <label>Disciplina / Matéria</label>
+              <!-- OnChange Adicionado para atualizar tags da criação -->
+              <select id="subject-input" onchange="updateAllTagUIs()">
+                <option value="Português">Português</option>
+                <option value="TI">TI</option>
+                <option value="Ciências Forenses">Ciências Forenses</option>
+                <option value="Conceitos do Paraná">Conceitos do Paraná</option>
+                <option value="Legislação Estadual">Legislação Estadual</option>
+                <option value="Raciocínio Lógico e Matemático">Raciocínio Lógico e Matemático</option>
+                <option value="Estatística">Estatística</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label>Tag / Assunto</label>
+              <select id="tag-input" class="dropzone" onchange="handleNewTag(this)" ondrop="dropTag(event, this)" ondragover="allowDrop(event)">
+                <option value="">Sem tag</option>
+                <option value="_new_" style="font-weight: bold; color: var(--primary);">+ Adicionar Nova Tag...</option>
+              </select>
+              <div class="quick-tags-container" id="create-quick-tags"></div>
+            </div>
+
+            <div class="input-group" style="margin-bottom: 0.2rem;">
+              <label>Pergunta (Frente)</label>
+              <div id="front-input" class="rich-textarea" contenteditable="true" data-placeholder="Ex: (Cebraspe) O princípio da legalidade..."></div>
+            </div>
+            <div class="formatting-hint">💡 Atalhos: Selecione e aperte <strong>Ctrl+B</strong>, <strong>Ctrl+U</strong> ou <strong>Ctrl+Shift+X</strong>.</div>
+
+            <div class="input-group" style="margin-bottom: 0.2rem; margin-top: 0.75rem;">
+              <label>Resposta (Verso)</label>
+              <div id="back-input" class="rich-textarea" contenteditable="true" data-placeholder="Ex: CERTO. A Administração Pública..."></div>
+            </div>
+            <div class="formatting-hint">💡 Atalhos: Selecione e aperte <strong>Ctrl+B</strong>, <strong>Ctrl+U</strong> ou <strong>Ctrl+Shift+X</strong>.</div>
+
+            <button class="full-width" style="margin-top: 1rem;" onclick="addCard()">Salvar Flashcard</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= ABA 3: GERENCIAMENTO ================= -->
+      <div id="tab-manage" class="tab-content">
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label><strong>Filtrar:</strong></label>
+            <!-- OnChange Modificado -->
+            <select id="manage-subject-filter" onchange="updateAllTagUIs(); renderManageGrid()">
+              <option value="all">📚 Todas as Matérias</option>
+              <option value="Português">Português</option>
+              <option value="TI">TI</option>
+              <option value="Ciências Forenses">Ciências Forenses</option>
+              <option value="Conceitos do Paraná">Conceitos do Paraná</option>
+              <option value="Legislação Estadual">Legislação Estadual</option>
+              <option value="Raciocínio Lógico e Matemático">Raciocínio Lógico e Matemático</option>
+              <option value="Estatística">Estatística</option>
+            </select>
+          </div>
+          <div class="filter-group" style="flex: 2;">
+            <input type="text" id="manage-search-input" placeholder="🔍 Pesquisar por palavra-chave ou tag..." onkeyup="renderManageGrid()">
+          </div>
+          <span class="counter" id="total-cards-badge">Total: 0</span>
+        </div>
+
+        <div class="panel tags-quick-panel">
+          <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+            💡 <strong>Dica Ninja:</strong> Arraste uma tag abaixo e solte sobre qualquer card para aplicar rapidamente!
+          </label>
+          <div class="quick-tags-container" id="manage-quick-tags" style="margin-bottom: 0;"></div>
+        </div>
+
+        <div class="panel">
+          <div id="loading-manage" class="loading-msg">Conectando ao Banco de Dados...</div>
+          <div class="manage-grid" id="manage-grid"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBAfibRo4TdjNOur-C7HSoqpSbvG2AV1Sk",
+      authDomain: "flash-cards-7f7ee.firebaseapp.com",
+      projectId: "flash-cards-7f7ee",
+      storageBucket: "flash-cards-7f7ee.firebasestorage.app",
+      messagingSenderId: "759784543684",
+      appId: "1:759784543684:web:06743c24816f94cb588091"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const flashcardsCol = collection(db, "flashcards");
+
+    let cards = [];
+    let currentStudyCards = []; 
+    let currentIndex = 0;
+    
+    window.openMobileMenu = () => {
+      document.getElementById('mobile-sidebar').classList.add('open');
+      document.getElementById('sidebar-overlay').classList.add('active');
+    };
+    window.closeMobileMenu = () => {
+      document.getElementById('mobile-sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('active');
+    };
+
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+      updateThemeButton();
+    }
+    window.toggleTheme = function() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+      updateThemeButton();
+    }
+    function updateThemeButton() {
+      const isDark = document.body.classList.contains('dark-mode');
+      document.getElementById('theme-btn').innerHTML = isDark ? '☀️ Modo Claro' : '🌙 Modo Noturno';
+      document.getElementById('mob-theme-btn').innerHTML = isDark ? '☀️ Modo Claro' : '🌙 Modo Noturno';
+    }
+
+    async function loadCardsFromFirebase() {
+        try {
+            const querySnapshot = await getDocs(flashcardsCol);
+            cards = [];
+            querySnapshot.forEach((docSnap) => {
+                cards.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            document.getElementById('loading-manage').style.display = 'none';
+            
+            // Chama a nova função contextual ao carregar
+            updateAllTagUIs();
+            applyStudyFilter(); 
+            if (document.getElementById('tab-manage').classList.contains('active')) renderManageGrid();
+        } catch (error) {
+            console.error(error);
+            document.getElementById('card-front').innerHTML = "<div class='card-text-wrapper'><em>Erro ao conectar ao Banco.</em></div>";
+            document.getElementById('loading-manage').innerHTML = "Falha ao conectar com o banco de dados.";
+        }
+    }
+
+    // =========================================
+    // NOVO SISTEMA INTELIGENTE (TAGS POR MATÉRIA)
+    // =========================================
+    
+    // Atualiza todas as abas baseado na matéria selecionada em cada uma
+    window.updateAllTagUIs = function() {
+      // 1. Aba Cadastro
+      const createSubj = document.getElementById('subject-input').value;
+      updateSpecificTagUI(createSubj, 'tag-input', 'create-quick-tags', 'Sem tag', true);
+
+      // 2. Modal de Edição
+      const editSubj = document.getElementById('edit-subject').value;
+      updateSpecificTagUI(editSubj, 'edit-tag', 'edit-quick-tags', 'Sem tag', true);
+
+      // 3. Aba Revisão (Filtro)
+      const studySubj = document.getElementById('study-subject-filter').value;
+      updateSpecificTagUI(studySubj, 'study-tag-filter', null, '🏷️ Todas as Tags', false);
+
+      // 4. Aba Gerenciamento (Drag & Drop Cloud)
+      const manageSubj = document.getElementById('manage-subject-filter').value;
+      updateSpecificTagUI(manageSubj, null, 'manage-quick-tags', null, false);
+    }
+
+    // Função base que filtra as tags por matéria
+    function updateSpecificTagUI(subject, selectId, cloudId, defaultText, allowNew) {
+      let filteredCards = cards;
+      
+      // Se não for "Todas as Matérias", filtra os cards por matéria
+      if (subject && subject !== 'all') {
+        filteredCards = cards.filter(c => c.subject === subject);
+      }
+      
+      // Pega as tags únicas baseadas nos cards já filtrados
+      const uniqueTags = [...new Set(filteredCards.map(c => c.tag).filter(t => t && t.trim() !== ''))].sort();
+
+      // Atualiza os Selects (<select>)
+      if (selectId) {
+        const sel = document.getElementById(selectId);
+        if(sel) {
+            const currentVal = sel.value;
+            sel.innerHTML = `<option value="">${defaultText}</option>`;
+            
+            uniqueTags.forEach(tag => {
+                sel.innerHTML += `<option value="${tag}">${tag}</option>`;
+            });
+            
+            if (allowNew) {
+                sel.innerHTML += `<option value="_new_" style="font-weight: bold; color: var(--primary);">+ Adicionar Nova Tag...</option>`;
+            }
+
+            // Mantém a tag selecionada se ela ainda existir na nova lista filtrada
+            if (currentVal && currentVal !== '_new_' && uniqueTags.includes(currentVal)) {
+                sel.value = currentVal;
+            } else {
+                sel.value = "";
+            }
+        }
+      }
+
+      // Atualiza a Nuvem de Tags para Arrastar e Soltar
+      if (cloudId) {
+        renderQuickTags(uniqueTags, cloudId, selectId);
+      }
+    }
+
+    function renderQuickTags(tags, containerId, targetSelectId) {
+      const container = document.getElementById(containerId);
+      if(!container) return;
+      container.innerHTML = '';
+      if(tags.length === 0) {
+          container.innerHTML = '<span style="font-size: 0.85rem; font-weight: bold; color: var(--text-muted); opacity: 0.7;">Nenhuma tag criada para esta disciplina.</span>';
+          return;
+      }
+
+      tags.forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'quick-tag-pill';
+        span.textContent = tag;
+        span.draggable = true;
+        
+        if (targetSelectId) {
+          span.onclick = () => { document.getElementById(targetSelectId).value = tag; };
+        } else {
+          span.onclick = () => { alert('Arraste e solte esta tag em cima de um card abaixo!'); };
+        }
+        
+        span.ondragstart = (e) => {
+          e.dataTransfer.setData('text/plain', tag);
+          e.dataTransfer.effectAllowed = 'copy';
+        };
+        container.appendChild(span);
+      });
+    }
+
+    window.allowDrop = (e) => { e.preventDefault(); e.target.classList.add('dragover'); }
+    window.dropTag = (e, selectElem) => {
+      e.preventDefault();
+      selectElem.classList.remove('dragover');
+      const draggedTag = e.dataTransfer.getData('text/plain');
+      if(draggedTag) { selectElem.value = draggedTag; }
+    }
+    document.addEventListener('dragenter', e => { if(e.target.classList && e.target.classList.contains('dropzone')) e.target.classList.add('dragover'); });
+    document.addEventListener('dragleave', e => { if(e.target.classList && e.target.classList.contains('dropzone')) e.target.classList.remove('dragover'); });
+
+    window.handleDropTagOnCard = async function(e, cardId, cardElem) {
+      e.preventDefault();
+      cardElem.classList.remove('dragover');
+      const draggedTag = e.dataTransfer.getData('text/plain');
+      
+      if(draggedTag) {
+        cardElem.style.opacity = '0.5';
+        try {
+          await updateDoc(doc(db, "flashcards", cardId), { tag: draggedTag });
+          const idx = cards.findIndex(c => c.id === cardId);
+          if (idx > -1) cards[idx].tag = draggedTag;
+          
+          updateAllTagUIs(); 
+          renderManageGrid();
+          applyStudyFilter(); 
+        } catch (error) {
+          console.error(error);
+          alert("Erro ao aplicar a tag ao card.");
+          cardElem.style.opacity = '1';
+        }
+      }
+    };
+
+    window.handleNewTag = function(selectElem) {
+      if (selectElem.value === '_new_') {
+        const newTag = prompt("Digite o nome da nova tag:");
+        if (newTag && newTag.trim() !== '') {
+          const formattedTag = newTag.trim();
+          let exists = false;
+          Array.from(selectElem.options).forEach(opt => {
+            if (opt.value.toLowerCase() === formattedTag.toLowerCase()) { exists = true; selectElem.value = opt.value; }
+          });
+          if (!exists) {
+            const newOption = document.createElement('option');
+            newOption.value = formattedTag; newOption.text = formattedTag;
+            selectElem.insertBefore(newOption, selectElem.lastElementChild);
+            selectElem.value = formattedTag;
+          }
+        } else { selectElem.value = ""; }
+      }
+    };
+
+    // ======== NAVEGAÇÃO & ATALHOS ========
+    document.addEventListener('keydown', function(e) {
+      const activeEl = document.activeElement;
+      if (activeEl && activeEl.getAttribute('contenteditable') === 'true') {
+        if (e.ctrlKey || e.metaKey) {
+          if (e.key.toLowerCase() === 'b') { e.preventDefault(); document.execCommand('bold', false, null); } 
+          else if (e.key.toLowerCase() === 'u') { e.preventDefault(); document.execCommand('underline', false, null); } 
+          else if (e.shiftKey && e.key.toLowerCase() === 'x') { e.preventDefault(); document.execCommand('strikeThrough', false, null); }
+        }
+      }
+    });
+
+    window.switchTab = function(tabName) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+      document.getElementById(`mob-tab-${tabName}`).classList.add('active');
+
+      if (tabName === 'manage') renderManageGrid();
+      else if (tabName === 'study') applyStudyFilter();
+    }
+
+    // ======== MODO ESTUDO ========
+    window.applyStudyFilter = function() {
+      const subjectFilter = document.getElementById('study-subject-filter').value;
+      const tagFilter = document.getElementById('study-tag-filter').value;
+
+      currentStudyCards = cards.filter(card => {
+        const matchSubject = subjectFilter === 'all' || card.subject === subjectFilter;
+        const matchTag = !tagFilter || card.tag === tagFilter;
+        return matchSubject && matchTag;
+      });
+
+      currentIndex = 0; updateCardView();
+    }
+
+    window.shuffleCards = function() {
+      if (currentStudyCards.length === 0) return;
+      for (let i = currentStudyCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [currentStudyCards[i], currentStudyCards[j]] = [currentStudyCards[j], currentStudyCards[i]];
+      }
+      currentIndex = 0; updateCardView();
+    }
+
+    function updateCardView() {
+      const cardElem = document.getElementById('flashcard');
+      cardElem.classList.remove('flipped');
+
+      if (currentStudyCards.length === 0) {
+        document.getElementById('card-subject-front').style.display = 'none';
+        document.getElementById('card-tag-front').style.display = 'none';
+        document.getElementById('card-subject-back').style.display = 'none';
+        document.getElementById('card-tag-back').style.display = 'none';
+        document.getElementById('card-front').innerHTML = `<div class="card-text-wrapper"><em>Nenhum card encontrado.</em></div>`;
+        document.getElementById('card-back').innerHTML = `<div class="card-text-wrapper"><em>Altere os filtros.</em></div>`;
+        document.getElementById('card-counter').innerText = "0 / 0";
+        return;
+      }
+
+      const currentCard = currentStudyCards[currentIndex];
+      
+      ['front', 'back'].forEach(side => {
+        document.getElementById(`card-subject-${side}`).style.display = 'inline-block';
+        document.getElementById(`card-subject-${side}`).textContent = currentCard.subject;
+        
+        document.getElementById(`card-${side}`).innerHTML = `<div class="card-text-wrapper">${currentCard[side]}</div>`;
+        
+        const tagElem = document.getElementById(`card-tag-${side}`);
+        if (currentCard.tag && currentCard.tag.trim() !== '') {
+          tagElem.style.display = 'inline-block';
+          tagElem.textContent = `#${currentCard.tag}`;
+        } else { tagElem.style.display = 'none'; }
+      });
+      
+      document.querySelectorAll('.card-content-area').forEach(el => el.scrollTop = 0);
+      document.getElementById('card-counter').innerText = `${currentIndex + 1} / ${currentStudyCards.length}`;
+    }
+
+    window.flipCard = function() { if(currentStudyCards.length) document.getElementById('flashcard').classList.toggle('flipped'); }
+    window.nextCard = function() { if(currentStudyCards.length) { document.getElementById('flashcard').classList.remove('flipped'); setTimeout(() => { currentIndex = (currentIndex + 1) % currentStudyCards.length; updateCardView(); }, 150); } }
+    window.prevCard = function() { if(currentStudyCards.length) { document.getElementById('flashcard').classList.remove('flipped'); setTimeout(() => { currentIndex = (currentIndex - 1 + currentStudyCards.length) % currentStudyCards.length; updateCardView(); }, 150); } }
+
+    window.deleteCurrentStudyCard = async function() {
+      if (currentStudyCards.length === 0) return;
+      if (confirm('Deseja excluir este flashcard?')) {
+        const cardToDelete = currentStudyCards[currentIndex];
+        try {
+            await deleteDoc(doc(db, "flashcards", cardToDelete.id));
+            cards = cards.filter(c => c.id !== cardToDelete.id);
+            currentStudyCards.splice(currentIndex, 1);
+            if (currentIndex >= currentStudyCards.length) currentIndex = Math.max(0, currentStudyCards.length - 1);
+            updateAllTagUIs(); updateCardView();
+        } catch (error) { alert("Falha ao excluir."); }
+      }
+    }
+
+    window.addCard = async function() {
+      const subject = document.getElementById('subject-input').value;
+      const tag = document.getElementById('tag-input').value.trim();
+      const front = document.getElementById('front-input').innerHTML; 
+      const back = document.getElementById('back-input').innerHTML;
+
+      if (!document.getElementById('front-input').innerText.trim() || !document.getElementById('back-input').innerText.trim()) {
+        alert('Preencha a pergunta e resposta.'); return;
+      }
+      
+      const btn = event.currentTarget; const origText = btn.innerHTML;
+      btn.innerHTML = "Salvando..."; btn.disabled = true;
+
+      try {
+          const newCard = { subject, tag, front, back };
+          const docRef = await addDoc(flashcardsCol, newCard);
+          cards.push({ id: docRef.id, ...newCard });
+
+          document.getElementById('front-input').innerHTML = '';
+          document.getElementById('back-input').innerHTML = '';
+          document.getElementById('tag-input').value = '';
+          
+          const alertElem = document.getElementById('success-alert');
+          alertElem.style.display = 'block'; setTimeout(() => alertElem.style.display = 'none', 3000);
+          updateAllTagUIs(); applyStudyFilter();
+      } catch (error) { alert("Erro ao salvar."); } 
+      finally { btn.innerHTML = origText; btn.disabled = false; }
+    }
+
+    window.openEditModalById = function(cardId) {
+      const card = cards.find(c => c.id === cardId);
+      if(!card) return;
+      document.getElementById('edit-id').value = card.id;
+      document.getElementById('edit-subject').value = card.subject;
+      
+      // Filtra as tags do modal baseando-se na matéria do card aberto
+      updateAllTagUIs();
+
+      document.getElementById('edit-tag').value = card.tag || '';
+      document.getElementById('edit-front').innerHTML = card.front;
+      document.getElementById('edit-back').innerHTML = card.back;
+      document.getElementById('edit-modal').style.display = 'flex';
+    };
+    window.closeEditModal = function() { document.getElementById('edit-modal').style.display = 'none'; }
+
+    window.saveEditedCard = async function() {
+      const id = document.getElementById('edit-id').value;
+      const subject = document.getElementById('edit-subject').value;
+      const tag = document.getElementById('edit-tag').value.trim();
+      const front = document.getElementById('edit-front').innerHTML;
+      const back = document.getElementById('edit-back').innerHTML;
+
+      if (!document.getElementById('edit-front').innerText.trim() || !document.getElementById('edit-back').innerText.trim()) { alert('Campos vazios não permitidos.'); return; }
+
+      const btn = document.getElementById('btn-save-edit'); const orig = btn.innerHTML;
+      btn.innerHTML = "Atualizando..."; btn.disabled = true;
+
+      try {
+        await updateDoc(doc(db, "flashcards", id), { subject, tag, front, back });
+        const idx = cards.findIndex(c => c.id === id);
+        if (idx > -1) cards[idx] = { id, subject, tag, front, back };
+        closeEditModal(); updateAllTagUIs(); renderManageGrid(); applyStudyFilter(); 
+      } catch (error) { alert("Falha ao atualizar."); } 
+      finally { btn.innerHTML = orig; btn.disabled = false; }
+    }
+
+    window.renderManageGrid = function() {
+      const grid = document.getElementById('manage-grid');
+      const subjFilter = document.getElementById('manage-subject-filter').value;
+      const search = document.getElementById('manage-search-input').value.toLowerCase();
+      
+      grid.innerHTML = '';
+      const filtered = cards.filter(c => {
+        const mSubj = subjFilter === 'all' || c.subject === subjFilter;
+        const pFront = c.front.replace(/<[^>]*>?/gm, '').toLowerCase();
+        const pBack = c.back.replace(/<[^>]*>?/gm, '').toLowerCase();
+        const mSearch = pFront.includes(search) || pBack.includes(search) || (c.tag||'').toLowerCase().includes(search);
+        return mSubj && mSearch;
+      });
+
+      document.getElementById('total-cards-badge').innerText = `Total: ${filtered.length}`;
+      if (filtered.length === 0) { grid.innerHTML = `<div class="empty-state"><h3>Nenhum card encontrado</h3></div>`; return; }
+
+      filtered.forEach(c => {
+        const div = document.createElement('div'); 
+        div.className = 'manage-card';
+        
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="manage-card-subject">${c.subject}</div>
+            ${c.tag ? `<span class="tag-badge">#${c.tag}</span>` : ''}
+          </div>
+          <div class="manage-card-content">
+            <div class="manage-field"><span>Frente</span>${c.front}</div>
+            <div class="manage-field"><span>Verso</span>${c.back}</div>
+          </div>
+          <div class="manage-actions">
+             <button class="btn-action full-width" onclick="openEditModalById('${c.id}')">Editar</button>
+             <button class="btn-danger full-width" onclick="deleteCardFromList('${c.id}')">Remover</button>
+          </div>
+        `;
+        
+        div.ondragover = (e) => { e.preventDefault(); div.classList.add('dragover'); };
+        div.ondragleave = (e) => { e.preventDefault(); div.classList.remove('dragover'); };
+        div.ondrop = (e) => handleDropTagOnCard(e, c.id, div);
+        
+        grid.appendChild(div);
+      });
+    }
+
+    window.deleteCardFromList = async function(cardId) {
+      if (confirm('Excluir este card definitivamente?')) {
+        try {
+            await deleteDoc(doc(db, "flashcards", cardId));
+            cards = cards.filter(c => c.id !== cardId);
+            updateAllTagUIs(); applyStudyFilter(); renderManageGrid();
+        } catch (error) { alert("Erro ao excluir."); }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const el = document.activeElement;
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.getAttribute('contenteditable') === 'true') return; 
+      if (document.getElementById('edit-modal').style.display === 'flex') return;
+      if (!document.getElementById('tab-study').classList.contains('active')) return;
+      
+      if (e.key === 'ArrowRight') window.nextCard();
+      if (e.key === 'ArrowLeft') window.prevCard();
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); window.flipCard(); }
+    });
+
+    loadCardsFromFirebase();
+  </script>
+</body>
+</html>
