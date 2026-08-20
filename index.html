@@ -53,6 +53,9 @@
       overflow: hidden;
     }
 
+    /* Utilitário para esconder elementos de não-admins */
+    .hidden { display: none !important; }
+
     /* =========================================
        HEADER & MENU LATERAL (MOBILE)
        ========================================= */
@@ -76,7 +79,13 @@
     .tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; }
     .tab-btn:hover { color: var(--text); }
     .tab-btn.active { background-color: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
-    .theme-toggle-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; }
+    
+    .theme-toggle-btn { 
+      background: var(--bg); border: 1px solid var(--border); color: var(--text); 
+      padding: 0.5rem 0.85rem; border-radius: 8px; cursor: pointer; font-weight: 600; 
+      font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; 
+    }
+    .auth-btn-style { background: var(--secondary); color: var(--secondary-text); border-color: transparent; }
 
     .menu-toggle {
       display: none; background: transparent; border: none; color: var(--text);
@@ -95,7 +104,7 @@
     .mobile-nav-links { display: flex; flex-direction: column; gap: 0.5rem; }
     .mobile-nav-links .tab-btn { justify-content: flex-start; padding: 1rem; font-size: 1rem; background: transparent; border-radius: 8px; }
     .mobile-nav-links .tab-btn.active { background: var(--secondary); color: var(--primary); }
-    .mobile-nav-links .theme-toggle-btn { margin-top: auto; justify-content: center; padding: 1rem; margin-top: 2rem; }
+    .mobile-nav-links .theme-toggle-btn { justify-content: center; padding: 1rem; margin-top: 0.5rem; }
 
     .sidebar-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -138,9 +147,6 @@
     .dark-mode strong { color: #818cf8; }
     .dark-mode u { text-decoration-color: #818cf8; }
 
-    /* =========================================
-       NUVEM DE TAGS RÁPIDAS
-       ========================================= */
     .quick-tags-container { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.25rem; margin-bottom: 0.5rem; }
     .quick-tag-pill { 
       font-size: 0.75rem; font-weight: 600; background: var(--secondary); color: var(--secondary-text); 
@@ -198,10 +204,7 @@
     }
 
     .card-text-wrapper ul,
-    .card-text-wrapper ol {
-      text-align: left; padding-left: 2rem; margin: 0.5rem 0; display: block; 
-    }
-
+    .card-text-wrapper ol { text-align: left; padding-left: 2rem; margin: 0.5rem 0; display: block; }
     .card-text-wrapper li { margin-bottom: 0.5rem; text-align: left; }
     .card-text-wrapper p, .card-text-wrapper div { width: 100%; margin-bottom: 0.5rem; }
 
@@ -219,16 +222,13 @@
     .controls button { padding: 0.75rem 1.5rem; font-size: 1rem; min-width: 120px; }
 
     /* =========================================
-       ABA 2: CRIAÇÃO
+       ABAS 2 E 3 E MODAIS
        ========================================= */
     #tab-create { overflow-y: auto; padding-bottom: 2rem; }
     .create-layout { max-width: 800px; margin: 0 auto; width: 100%; }
     .formatting-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: -0.2rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.4rem; }
     .success-alert { display: none; background-color: #10b981; color: white; padding: 0.85rem; border-radius: 8px; font-weight: 600; font-size: 1rem; margin-bottom: 1rem; text-align: center; }
 
-    /* =========================================
-       ABA 3: GERENCIAMENTO E GRID
-       ========================================= */
     .filter-bar { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 0.85rem 1.25rem; border-radius: var(--radius); box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 1rem; gap: 0.75rem; flex-wrap: wrap; width: 100%; }
     .filter-group { display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 220px; }
     .filter-group label { margin: 0; white-space: nowrap; font-size: 0.9rem; }
@@ -256,6 +256,10 @@
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 1rem; }
     .modal-content { max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; }
+    
+    /* Box do Login Modal */
+    .login-box { max-width: 400px; text-align: center; padding: 2rem; }
+    .login-box h2 { color: var(--primary); margin-bottom: 0.5rem; }
 
     /* =========================================
        OTIMIZAÇÃO MOBILE (CELULARES)
@@ -264,23 +268,17 @@
       body { height: auto; overflow-y: auto; }
       main { overflow-y: visible; padding: 0.75rem; }
       .container, .flashcard-container { height: auto; overflow: visible; display: block; }
-      
       .tab-content { display: none !important; height: auto; overflow: visible; }
       .tab-content.active { display: flex !important; flex-direction: column; }
-      
       .nav-actions { display: none; } 
       .menu-toggle { display: block; }
-
       header { padding: 0.75rem 1rem; }
       h1 { font-size: 1.1rem; }
-
       .study-layout { flex-direction: column; gap: 1rem; }
       .study-sidebar { width: 100%; }
       .study-sidebar-panel { flex-direction: column; gap: 0.75rem; padding: 1rem; }
-      
       .flashcard { min-height: 350px; margin-top: 0.5rem; }
       .controls button { padding: 0.75rem 1rem; font-size: 0.9rem; flex: 1; }
-      
       .filter-bar { flex-direction: column; align-items: stretch; gap: 0.5rem; }
       .filter-group { width: 100%; min-width: 0; }
     }
@@ -297,11 +295,37 @@
     </div>
     <div class="mobile-nav-links">
       <button class="tab-btn active" onclick="switchTab('study'); closeMobileMenu()" id="mob-tab-study">📚 Revisar</button>
-      <button class="tab-btn" onclick="switchTab('create'); closeMobileMenu()" id="mob-tab-create">➕ Novo Card</button>
-      <button class="tab-btn" onclick="switchTab('manage'); closeMobileMenu()" id="mob-tab-manage">⚙️ Gerenciar</button>
-      <button class="theme-toggle-btn" onclick="toggleTheme()" id="mob-theme-btn">🌙 Modo Noturno</button>
+      <button class="tab-btn admin-only hidden" onclick="switchTab('create'); closeMobileMenu()" id="mob-tab-create">➕ Novo Card</button>
+      <button class="tab-btn admin-only hidden" onclick="switchTab('manage'); closeMobileMenu()" id="mob-tab-manage">⚙️ Gerenciar</button>
+      
+      <div style="margin-top: auto;">
+        <button class="theme-toggle-btn auth-btn-style" id="mob-auth-btn" style="width: 100%;" onclick="openLoginModal()">🔒 Login Admin</button>
+        <button class="theme-toggle-btn" onclick="toggleTheme()" id="mob-theme-btn" style="width: 100%;">🌙 Modo Noturno</button>
+      </div>
     </div>
   </aside>
+
+  <!-- MODAL DE LOGIN -->
+  <div id="login-modal" class="modal-overlay">
+    <div class="modal-content panel login-box">
+      <h2>🔒 Acesso Restrito</h2>
+      <p style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.9rem;">Para criar ou gerenciar flashcards, identifique-se.</p>
+      
+      <div class="input-group">
+        <input type="email" id="login-email" placeholder="Seu e-mail cadastrado no Firebase">
+      </div>
+      <div class="input-group">
+        <input type="password" id="login-password" placeholder="Sua senha secreta">
+      </div>
+      
+      <p id="login-error" style="color: var(--danger); margin-bottom: 1rem; font-size: 0.85rem; font-weight: bold; display: none;"></p>
+      
+      <div style="display: flex; gap: 1rem;">
+        <button class="btn-danger full-width" onclick="closeLoginModal()">Cancelar</button>
+        <button class="full-width" id="btn-login" onclick="realizarLogin()">Entrar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal de Edição -->
   <div id="edit-modal" class="modal-overlay">
@@ -311,7 +335,6 @@
       
       <div class="input-group">
         <label>Disciplina / Matéria</label>
-        <!-- OnChange Adicionado para atualizar tags da edição -->
         <select id="edit-subject" onchange="updateAllTagUIs()">
           <option value="Português">Português</option>
           <option value="TI">TI</option>
@@ -357,11 +380,14 @@
     </div>
     
     <div class="nav-actions">
+      <!-- NOVO BOTÃO DE LOGIN NO CABEÇALHO -->
+      <button class="theme-toggle-btn auth-btn-style" id="auth-btn" onclick="openLoginModal()">🔒 Login</button>
       <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">🌙 Modo Noturno</button>
+      
       <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('study')" id="tab-btn-study">📚 Revisar</button>
-        <button class="tab-btn" onclick="switchTab('create')" id="tab-btn-create">➕ Novo Card</button>
-        <button class="tab-btn" onclick="switchTab('manage')" id="tab-btn-manage">⚙️ Gerenciar</button>
+        <button class="tab-btn admin-only hidden" onclick="switchTab('create')" id="tab-btn-create">➕ Novo Card</button>
+        <button class="tab-btn admin-only hidden" onclick="switchTab('manage')" id="tab-btn-manage">⚙️ Gerenciar</button>
       </div>
     </div>
   </header>
@@ -377,7 +403,6 @@
             <div class="study-sidebar-panel">
               <div>
                 <label><strong>Disciplina:</strong></label>
-                <!-- OnChange Modificado -->
                 <select id="study-subject-filter" onchange="updateAllTagUIs(); applyStudyFilter()">
                   <option value="all">📚 Todas as Matérias</option>
                   <option value="Português">Português</option>
@@ -427,7 +452,8 @@
             <div class="controls">
               <button class="btn-secondary" onclick="prevCard()">◄ Anterior</button>
               <button class="btn-secondary" onclick="nextCard()">Próximo ►</button>
-              <button class="btn-danger" onclick="deleteCurrentStudyCard()">Excluir</button>
+              <!-- Botão Excluir protegido -->
+              <button class="btn-danger admin-only hidden" onclick="deleteCurrentStudyCard()">Excluir</button>
             </div>
           </div>
 
@@ -443,7 +469,6 @@
 
             <div class="input-group">
               <label>Disciplina / Matéria</label>
-              <!-- OnChange Adicionado para atualizar tags da criação -->
               <select id="subject-input" onchange="updateAllTagUIs()">
                 <option value="Português">Português</option>
                 <option value="TI">TI</option>
@@ -486,7 +511,6 @@
         <div class="filter-bar">
           <div class="filter-group">
             <label><strong>Filtrar:</strong></label>
-            <!-- OnChange Modificado -->
             <select id="manage-subject-filter" onchange="updateAllTagUIs(); renderManageGrid()">
               <option value="all">📚 Todas as Matérias</option>
               <option value="Português">Português</option>
@@ -523,6 +547,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    // IMPORTAÇÃO DA AUTENTICAÇÃO DO FIREBASE
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBAfibRo4TdjNOur-C7HSoqpSbvG2AV1Sk",
@@ -535,12 +561,77 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app); // INICIALIZA AUTENTICAÇÃO
     const flashcardsCol = collection(db, "flashcards");
 
     let cards = [];
     let currentStudyCards = []; 
     let currentIndex = 0;
     
+    // =========================================
+    // SISTEMA DE LOGIN E CONTROLE DE ACESSO
+    // =========================================
+    
+    window.openLoginModal = () => { document.getElementById('login-modal').style.display = 'flex'; closeMobileMenu(); }
+    window.closeLoginModal = () => {
+      document.getElementById('login-modal').style.display = 'none';
+      document.getElementById('login-error').style.display = 'none';
+      document.getElementById('login-email').value = '';
+      document.getElementById('login-password').value = '';
+    }
+
+    window.realizarLogin = async () => {
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-password').value;
+      const btn = document.getElementById('btn-login');
+      const err = document.getElementById('login-error');
+
+      if(!email || !pass) {
+          err.innerText = "Preencha seu e-mail e senha.";
+          err.style.display = 'block'; return;
+      }
+
+      btn.innerText = "Conectando...";
+      try {
+          await signInWithEmailAndPassword(auth, email, pass);
+          closeLoginModal();
+      } catch(error) {
+          err.innerText = "Acesso negado. Verifique os dados.";
+          err.style.display = 'block';
+      } finally { btn.innerText = "Entrar"; }
+    }
+
+    window.realizarLogout = () => signOut(auth);
+
+    // Ouve as mudanças de estado de login em tempo real
+    onAuthStateChanged(auth, (user) => {
+        const adminElements = document.querySelectorAll('.admin-only');
+        const authBtn = document.getElementById('auth-btn');
+        const mobAuthBtn = document.getElementById('mob-auth-btn');
+
+        if (user) {
+            // Usuário logado: Mostra ferramentas de admin
+            adminElements.forEach(el => el.classList.remove('hidden'));
+            authBtn.innerHTML = '🔓 Sair (Admin)';
+            authBtn.onclick = window.realizarLogout;
+            if(mobAuthBtn) { mobAuthBtn.innerHTML = '🔓 Sair'; mobAuthBtn.onclick = window.realizarLogout; }
+        } else {
+            // Deslogado: Esconde ferramentas e redireciona para a aba Revisão se necessário
+            adminElements.forEach(el => el.classList.add('hidden'));
+            authBtn.innerHTML = '🔒 Login Admin';
+            authBtn.onclick = window.openLoginModal;
+            if(mobAuthBtn) { mobAuthBtn.innerHTML = '🔒 Login Admin'; mobAuthBtn.onclick = window.openLoginModal; }
+
+            const currentTab = document.querySelector('.tab-content.active');
+            if (currentTab && (currentTab.id === 'tab-create' || currentTab.id === 'tab-manage')) {
+                switchTab('study'); // Força a voltar para o modo seguro
+            }
+        }
+    });
+
+    // =========================================
+    // MENU MOBILE E TEMAS
+    // =========================================
     window.openMobileMenu = () => {
       document.getElementById('mobile-sidebar').classList.add('open');
       document.getElementById('sidebar-overlay').classList.add('active');
@@ -574,80 +665,50 @@
             });
             document.getElementById('loading-manage').style.display = 'none';
             
-            // Chama a nova função contextual ao carregar
             updateAllTagUIs();
             applyStudyFilter(); 
             if (document.getElementById('tab-manage').classList.contains('active')) renderManageGrid();
         } catch (error) {
             console.error(error);
-            document.getElementById('card-front').innerHTML = "<div class='card-text-wrapper'><em>Erro ao conectar ao Banco.</em></div>";
+            document.getElementById('card-front').innerHTML = "<div class='card-text-wrapper'><em>Erro de conexão ou sem permissão de leitura.</em></div>";
             document.getElementById('loading-manage').innerHTML = "Falha ao conectar com o banco de dados.";
         }
     }
 
     // =========================================
-    // NOVO SISTEMA INTELIGENTE (TAGS POR MATÉRIA)
+    // SISTEMA INTELIGENTE (TAGS POR MATÉRIA)
     // =========================================
-    
-    // Atualiza todas as abas baseado na matéria selecionada em cada uma
     window.updateAllTagUIs = function() {
-      // 1. Aba Cadastro
       const createSubj = document.getElementById('subject-input').value;
       updateSpecificTagUI(createSubj, 'tag-input', 'create-quick-tags', 'Sem tag', true);
 
-      // 2. Modal de Edição
       const editSubj = document.getElementById('edit-subject').value;
       updateSpecificTagUI(editSubj, 'edit-tag', 'edit-quick-tags', 'Sem tag', true);
 
-      // 3. Aba Revisão (Filtro)
       const studySubj = document.getElementById('study-subject-filter').value;
       updateSpecificTagUI(studySubj, 'study-tag-filter', null, '🏷️ Todas as Tags', false);
 
-      // 4. Aba Gerenciamento (Drag & Drop Cloud)
       const manageSubj = document.getElementById('manage-subject-filter').value;
       updateSpecificTagUI(manageSubj, null, 'manage-quick-tags', null, false);
     }
 
-    // Função base que filtra as tags por matéria
     function updateSpecificTagUI(subject, selectId, cloudId, defaultText, allowNew) {
       let filteredCards = cards;
+      if (subject && subject !== 'all') { filteredCards = cards.filter(c => c.subject === subject); }
       
-      // Se não for "Todas as Matérias", filtra os cards por matéria
-      if (subject && subject !== 'all') {
-        filteredCards = cards.filter(c => c.subject === subject);
-      }
-      
-      // Pega as tags únicas baseadas nos cards já filtrados
       const uniqueTags = [...new Set(filteredCards.map(c => c.tag).filter(t => t && t.trim() !== ''))].sort();
 
-      // Atualiza os Selects (<select>)
       if (selectId) {
         const sel = document.getElementById(selectId);
         if(sel) {
             const currentVal = sel.value;
             sel.innerHTML = `<option value="">${defaultText}</option>`;
-            
-            uniqueTags.forEach(tag => {
-                sel.innerHTML += `<option value="${tag}">${tag}</option>`;
-            });
-            
-            if (allowNew) {
-                sel.innerHTML += `<option value="_new_" style="font-weight: bold; color: var(--primary);">+ Adicionar Nova Tag...</option>`;
-            }
-
-            // Mantém a tag selecionada se ela ainda existir na nova lista filtrada
-            if (currentVal && currentVal !== '_new_' && uniqueTags.includes(currentVal)) {
-                sel.value = currentVal;
-            } else {
-                sel.value = "";
-            }
+            uniqueTags.forEach(tag => { sel.innerHTML += `<option value="${tag}">${tag}</option>`; });
+            if (allowNew) { sel.innerHTML += `<option value="_new_" style="font-weight: bold; color: var(--primary);">+ Adicionar Nova Tag...</option>`; }
+            if (currentVal && currentVal !== '_new_' && uniqueTags.includes(currentVal)) { sel.value = currentVal; } else { sel.value = ""; }
         }
       }
-
-      // Atualiza a Nuvem de Tags para Arrastar e Soltar
-      if (cloudId) {
-        renderQuickTags(uniqueTags, cloudId, selectId);
-      }
+      if (cloudId) { renderQuickTags(uniqueTags, cloudId, selectId); }
     }
 
     function renderQuickTags(tags, containerId, targetSelectId) {
@@ -665,16 +726,10 @@
         span.textContent = tag;
         span.draggable = true;
         
-        if (targetSelectId) {
-          span.onclick = () => { document.getElementById(targetSelectId).value = tag; };
-        } else {
-          span.onclick = () => { alert('Arraste e solte esta tag em cima de um card abaixo!'); };
-        }
+        if (targetSelectId) { span.onclick = () => { document.getElementById(targetSelectId).value = tag; }; } 
+        else { span.onclick = () => { alert('Arraste e solte esta tag em cima de um card abaixo!'); }; }
         
-        span.ondragstart = (e) => {
-          e.dataTransfer.setData('text/plain', tag);
-          e.dataTransfer.effectAllowed = 'copy';
-        };
+        span.ondragstart = (e) => { e.dataTransfer.setData('text/plain', tag); e.dataTransfer.effectAllowed = 'copy'; };
         container.appendChild(span);
       });
     }
@@ -700,14 +755,9 @@
           await updateDoc(doc(db, "flashcards", cardId), { tag: draggedTag });
           const idx = cards.findIndex(c => c.id === cardId);
           if (idx > -1) cards[idx].tag = draggedTag;
-          
-          updateAllTagUIs(); 
-          renderManageGrid();
-          applyStudyFilter(); 
+          updateAllTagUIs(); renderManageGrid(); applyStudyFilter(); 
         } catch (error) {
-          console.error(error);
-          alert("Erro ao aplicar a tag ao card.");
-          cardElem.style.opacity = '1';
+          console.error(error); alert("Você não tem permissão para editar os cards."); cardElem.style.opacity = '1';
         }
       }
     };
@@ -718,9 +768,7 @@
         if (newTag && newTag.trim() !== '') {
           const formattedTag = newTag.trim();
           let exists = false;
-          Array.from(selectElem.options).forEach(opt => {
-            if (opt.value.toLowerCase() === formattedTag.toLowerCase()) { exists = true; selectElem.value = opt.value; }
-          });
+          Array.from(selectElem.options).forEach(opt => { if (opt.value.toLowerCase() === formattedTag.toLowerCase()) { exists = true; selectElem.value = opt.value; } });
           if (!exists) {
             const newOption = document.createElement('option');
             newOption.value = formattedTag; newOption.text = formattedTag;
@@ -731,7 +779,6 @@
       }
     };
 
-    // ======== NAVEGAÇÃO & ATALHOS ========
     document.addEventListener('keydown', function(e) {
       const activeEl = document.activeElement;
       if (activeEl && activeEl.getAttribute('contenteditable') === 'true') {
@@ -755,7 +802,6 @@
       else if (tabName === 'study') applyStudyFilter();
     }
 
-    // ======== MODO ESTUDO ========
     window.applyStudyFilter = function() {
       const subjectFilter = document.getElementById('study-subject-filter').value;
       const tagFilter = document.getElementById('study-tag-filter').value;
@@ -826,7 +872,7 @@
             currentStudyCards.splice(currentIndex, 1);
             if (currentIndex >= currentStudyCards.length) currentIndex = Math.max(0, currentStudyCards.length - 1);
             updateAllTagUIs(); updateCardView();
-        } catch (error) { alert("Falha ao excluir."); }
+        } catch (error) { alert("Acesso negado. Apenas o administrador pode excluir cards."); }
       }
     }
 
@@ -855,7 +901,7 @@
           const alertElem = document.getElementById('success-alert');
           alertElem.style.display = 'block'; setTimeout(() => alertElem.style.display = 'none', 3000);
           updateAllTagUIs(); applyStudyFilter();
-      } catch (error) { alert("Erro ao salvar."); } 
+      } catch (error) { alert("Acesso negado. Apenas administradores podem criar cards."); } 
       finally { btn.innerHTML = origText; btn.disabled = false; }
     }
 
@@ -864,10 +910,7 @@
       if(!card) return;
       document.getElementById('edit-id').value = card.id;
       document.getElementById('edit-subject').value = card.subject;
-      
-      // Filtra as tags do modal baseando-se na matéria do card aberto
       updateAllTagUIs();
-
       document.getElementById('edit-tag').value = card.tag || '';
       document.getElementById('edit-front').innerHTML = card.front;
       document.getElementById('edit-back').innerHTML = card.back;
@@ -892,7 +935,7 @@
         const idx = cards.findIndex(c => c.id === id);
         if (idx > -1) cards[idx] = { id, subject, tag, front, back };
         closeEditModal(); updateAllTagUIs(); renderManageGrid(); applyStudyFilter(); 
-      } catch (error) { alert("Falha ao atualizar."); } 
+      } catch (error) { alert("Acesso negado para edição."); } 
       finally { btn.innerHTML = orig; btn.disabled = false; }
     }
 
@@ -946,14 +989,14 @@
             await deleteDoc(doc(db, "flashcards", cardId));
             cards = cards.filter(c => c.id !== cardId);
             updateAllTagUIs(); applyStudyFilter(); renderManageGrid();
-        } catch (error) { alert("Erro ao excluir."); }
+        } catch (error) { alert("Acesso negado para exclusão."); }
       }
     }
 
     document.addEventListener('keydown', (e) => {
       const el = document.activeElement;
       if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.getAttribute('contenteditable') === 'true') return; 
-      if (document.getElementById('edit-modal').style.display === 'flex') return;
+      if (document.getElementById('edit-modal').style.display === 'flex' || document.getElementById('login-modal').style.display === 'flex') return;
       if (!document.getElementById('tab-study').classList.contains('active')) return;
       
       if (e.key === 'ArrowRight') window.nextCard();
